@@ -187,19 +187,11 @@ function App() {
       profileResult.data;
 
     if (!userProfile) {
-      setMessage(
-        "Profile not found."
-      );
+      setMessage("Profile not found.");
       return;
     }
 
-    /*
-      BLOCKED USER CHECK
-    */
-    if (
-      userProfile.status ===
-      "blocked"
-    ) {
+    if (userProfile.status === "blocked") {
       await supabase.auth.signOut();
 
       setMessage(
@@ -218,17 +210,9 @@ function App() {
         userProfile.phone || "",
     });
 
-    setGames(
-      gamesResult.data || []
-    );
-
-    setProducts(
-      productsResult.data || []
-    );
-
-    setOrders(
-      ordersResult.data || []
-    );
+    setGames(gamesResult.data || []);
+    setProducts(productsResult.data || []);
+    setOrders(ordersResult.data || []);
 
     setWallet(
       walletResult.data || {
@@ -248,12 +232,10 @@ function App() {
     setBusy(true);
 
     const { error } =
-      await supabase.auth.signInWithPassword(
-        {
-          email: email.trim(),
-          password,
-        }
-      );
+      await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
     setBusy(false);
 
@@ -298,15 +280,13 @@ function App() {
 
   async function oauth(provider) {
     const { error } =
-      await supabase.auth.signInWithOAuth(
-        {
-          provider,
-          options: {
-            redirectTo:
-              window.location.origin,
-          },
-        }
-      );
+      await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo:
+            window.location.origin,
+        },
+      });
 
     if (error) {
       setMessage(error.message);
@@ -375,10 +355,8 @@ function App() {
   function chooseGame(game) {
     setSelectedGame(game);
     setSelectedProduct(null);
-
     setPlayerId("");
     setServerId("");
-
     setMessage("");
   }
 
@@ -393,23 +371,17 @@ function App() {
     setMessage("");
 
     if (!selectedGame) {
-      setMessage(
-        "Select a game."
-      );
+      setMessage("Select a game.");
       return;
     }
 
     if (!selectedProduct) {
-      setMessage(
-        "Select a package."
-      );
+      setMessage("Select a package.");
       return;
     }
 
     if (!playerId.trim()) {
-      setMessage(
-        "Enter Player ID."
-      );
+      setMessage("Enter Player ID.");
       return;
     }
 
@@ -418,9 +390,7 @@ function App() {
         "pubg-mobile" &&
       !serverId.trim()
     ) {
-      setMessage(
-        "Enter Server ID."
-      );
+      setMessage("Enter Server ID.");
       return;
     }
 
@@ -444,32 +414,18 @@ function App() {
       await supabase
         .from("orders")
         .insert({
-          user_id:
-            session.user.id,
-
-          game_id:
-            selectedGame.id,
-
-          product_id:
-            selectedProduct.id,
-
-          player_id:
-            playerId.trim(),
-
+          user_id: session.user.id,
+          game_id: selectedGame.id,
+          product_id: selectedProduct.id,
+          player_id: playerId.trim(),
           server_id:
             serverId.trim() || null,
-
           amount:
             selectedProduct.amount,
-
           total:
             selectedProduct.selling_price,
-
-          payment_status:
-            "pending",
-
-          fulfillment_status:
-            "pending",
+          payment_status: "pending",
+          fulfillment_status: "pending",
         })
         .select("*")
         .single();
@@ -480,9 +436,6 @@ function App() {
       return;
     }
 
-    /*
-      WALLET PAYMENT
-    */
     if (gateway === "wallet") {
       const {
         error: walletError,
@@ -501,7 +454,6 @@ function App() {
         );
 
         await load();
-
         return;
       }
 
@@ -520,9 +472,6 @@ function App() {
       return;
     }
 
-    /*
-      BKASH / NAGAD
-    */
     const {
       data: payment,
       error: paymentError,
@@ -545,14 +494,12 @@ function App() {
       );
 
       await load();
-
       return;
     }
 
     if (payment?.payment_url) {
       window.location.href =
         payment.payment_url;
-
       return;
     }
 
@@ -564,9 +511,6 @@ function App() {
     await load();
   }
 
-  /*
-    NOT LOGGED IN
-  */
   if (!session) {
     return (
       <Auth
@@ -587,9 +531,6 @@ function App() {
     );
   }
 
-  /*
-    MAIN APP
-  */
   return (
     <div className="app">
       <header className="topbar">
@@ -604,9 +545,7 @@ function App() {
           </div>
 
           <div>
-            <strong>
-              GameON
-            </strong>
+            <strong>GameON</strong>
 
             <span>
               Game Top-Up BD
@@ -731,9 +670,6 @@ function App() {
         </div>
       )}
 
-      {/*
-        SHOP
-      */}
       {tab === "shop" && (
         <main className="content">
           <section className="hero">
@@ -755,9 +691,7 @@ function App() {
           </section>
 
           <section className="card">
-            <h2>
-              Select Game
-            </h2>
+            <h2>Select Game</h2>
 
             <div className="game-grid">
               {games.map((game) => (
@@ -775,9 +709,7 @@ function App() {
                 >
                   {game.logo_url && (
                     <img
-                      src={
-                        game.logo_url
-                      }
+                      src={game.logo_url}
                       alt=""
                     />
                   )}
@@ -948,9 +880,7 @@ function App() {
                 )}
 
                 <div className="checkout-summary">
-                  <span>
-                    Total
-                  </span>
+                  <span>Total</span>
 
                   <strong>
                     {money(
@@ -972,16 +902,10 @@ function App() {
         </main>
       )}
 
-      {/*
-        ORDERS
-      */}
       {tab === "orders" && (
         <Orders orders={orders} />
       )}
 
-      {/*
-        PROFILE
-      */}
       {tab === "profile" && (
         <Profile
           profile={profile}
@@ -989,27 +913,17 @@ function App() {
           setForm={setProfileForm}
           onSave={saveProfile}
           msg={profileMsg}
-          email={
-            session.user.email
-          }
+          email={session.user.email}
         />
       )}
 
-      {/*
-        WALLET
-      */}
       {tab === "wallet" && (
         <Wallet
           wallet={wallet}
-          transactions={
-            walletTx
-          }
+          transactions={walletTx}
         />
       )}
 
-      {/*
-        ADMIN
-      */}
       {tab === "admin" && admin && (
         <Admin
           onBack={() =>
@@ -1022,9 +936,8 @@ function App() {
 }
 
 
-/*
-  AUTH
-*/
+/* AUTH */
+
 function Auth({
   mode,
   setMode,
@@ -1052,9 +965,7 @@ function Auth({
           </div>
 
           <div>
-            <strong>
-              GameON
-            </strong>
+            <strong>GameON</strong>
 
             <span>
               Game Top-Up BD
@@ -1177,9 +1088,8 @@ function Auth({
 }
 
 
-/*
-  PROFILE
-*/
+/* PROFILE */
+
 function Profile({
   profile,
   form,
@@ -1321,9 +1231,8 @@ function Profile({
 }
 
 
-/*
-  WALLET
-*/
+/* WALLET */
+
 function Wallet({
   wallet,
   transactions,
@@ -1332,9 +1241,7 @@ function Wallet({
     <main className="content">
       <div className="wallet-head">
         <div>
-          <h1>
-            My Wallet
-          </h1>
+          <h1>My Wallet</h1>
 
           <p className="muted">
             Use wallet balance to buy
@@ -1362,9 +1269,7 @@ function Wallet({
 
         <p>
           Select{" "}
-          <strong>
-            Wallet
-          </strong>{" "}
+          <strong>Wallet</strong>{" "}
           at checkout.
         </p>
 
@@ -1432,17 +1337,12 @@ function Wallet({
 }
 
 
-/*
-  ORDERS
-*/
-function Orders({
-  orders,
-}) {
+/* ORDERS */
+
+function Orders({ orders }) {
   return (
     <main className="content">
-      <h1>
-        My Orders
-      </h1>
+      <h1>My Orders</h1>
 
       <p className="muted">
         Only paid orders are shown
@@ -1506,12 +1406,9 @@ function Orders({
 }
 
 
-/*
-  ADMIN PANEL
-*/
-function Admin({
-  onBack,
-}) {
+/* ADMIN */
+
+function Admin({ onBack }) {
   const [users, setUsers] =
     useState([]);
 
@@ -1526,6 +1423,11 @@ function Admin({
 
   const [adminTab, setAdminTab] =
     useState("users");
+
+  /* NEW UNIQUE ID SEARCH */
+
+  const [userSearch, setUserSearch] =
+    useState("");
 
   useEffect(() => {
     loadAdminData();
@@ -1546,18 +1448,13 @@ function Admin({
       setMsg(
         userError.message
       );
+
       setLoading(false);
       return;
     }
 
     setUsers(userData || []);
 
-    /*
-      Admin order query.
-
-      RLS should allow this only if
-      your existing admin policy permits it.
-    */
     const {
       data: orderData,
       error: orderError,
@@ -1692,6 +1589,24 @@ function Admin({
     await loadAdminData();
   }
 
+  /* SEARCH BY UNIQUE ID */
+
+  const searchText =
+    userSearch.trim().toLowerCase();
+
+  const filteredUsers =
+    users.filter((user) => {
+      if (!searchText) {
+        return true;
+      }
+
+      return String(
+        user.user_code || ""
+      )
+        .toLowerCase()
+        .includes(searchText);
+    });
+
   return (
     <main className="content">
       <div className="section-title">
@@ -1751,9 +1666,6 @@ function Admin({
         </button>
       </div>
 
-      {/*
-        USERS
-      */}
       {adminTab === "users" && (
         <section className="card">
           <div className="section-title">
@@ -1777,6 +1689,49 @@ function Admin({
             </button>
           </div>
 
+          {/* UNIQUE ID SEARCH BOX */}
+
+          <div
+            className="user-search-box"
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "end",
+              flexWrap: "wrap",
+              marginBottom: "20px",
+            }}
+          >
+            <label
+              style={{
+                flex: "1",
+                minWidth: "220px",
+              }}
+            >
+              🔎 Search User by Unique ID
+
+              <input
+                value={userSearch}
+                onChange={(e) =>
+                  setUserSearch(
+                    e.target.value
+                  )
+                }
+                placeholder="Example: GO-ABC12345"
+              />
+            </label>
+
+            {userSearch && (
+              <button
+                type="button"
+                onClick={() =>
+                  setUserSearch("")
+                }
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div className="empty">
               Loading users...
@@ -1785,9 +1740,18 @@ function Admin({
             <div className="empty">
               No users found.
             </div>
+          ) : !filteredUsers.length ? (
+            <div className="empty">
+              🔎 No user found with
+              Unique ID:
+              <br />
+              <strong>
+                {userSearch}
+              </strong>
+            </div>
           ) : (
             <div className="admin-users">
-              {users.map(
+              {filteredUsers.map(
                 (user) => (
                   <div
                     className="card admin-user"
@@ -1821,7 +1785,7 @@ function Admin({
                         </p>
 
                         <small>
-                          User Code:{" "}
+                          Unique ID:{" "}
                           <b>
                             {
                               user.user_code
@@ -1940,9 +1904,6 @@ function Admin({
         </section>
       )}
 
-      {/*
-        ORDERS
-      */}
       {adminTab === "orders" && (
         <section className="card">
           <div className="section-title">
@@ -2067,13 +2028,8 @@ function Admin({
 }
 
 
-/*
-  START APP
-*/
 createRoot(
-  document.getElementById(
-    "root"
-  )
+  document.getElementById("root")
 ).render(
   <App />
 );
