@@ -54,6 +54,7 @@ function App() {
 
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
+
   const [gateway, setGateway] =
     useState("bkash");
 
@@ -97,6 +98,8 @@ function App() {
           setWallet({ balance: 0 });
           setWalletTx([]);
           setTab("shop");
+          setSelectedGame(null);
+          setSelectedProduct(null);
         }
       }
     );
@@ -336,6 +339,8 @@ function App() {
     setProfile(null);
     setSession(null);
     setTab("shop");
+    setSelectedGame(null);
+    setSelectedProduct(null);
   }
 
   const currentProducts =
@@ -354,6 +359,14 @@ function App() {
 
   function chooseGame(game) {
     setSelectedGame(game);
+    setSelectedProduct(null);
+    setPlayerId("");
+    setServerId("");
+    setMessage("");
+  }
+
+  function backToGames() {
+    setSelectedGame(null);
     setSelectedProduct(null);
     setPlayerId("");
     setServerId("");
@@ -670,8 +683,11 @@ function App() {
         </div>
       )}
 
+      {/* SHOP */}
+
       {tab === "shop" && (
         <main className="content">
+
           <section className="hero">
             <div>
               <p className="eyebrow">
@@ -690,221 +706,352 @@ function App() {
             </div>
           </section>
 
-          <section className="card">
-            <h2>Select Game</h2>
+          {/* GAME LIST */}
 
-            <div className="game-grid">
-              {games.map((game) => (
+          {!selectedGame ? (
+            <section className="card game-picker">
+
+              <div className="section-title">
+                <div>
+                  <p className="eyebrow">
+                    CHOOSE YOUR GAME
+                  </p>
+
+                  <h2>
+                    Select Game
+                  </h2>
+
+                  <p className="muted">
+                    Select a game to view
+                    its top-up packages.
+                  </p>
+                </div>
+              </div>
+
+              <div className="game-grid">
+                {games.map((game) => (
+                  <button
+                    key={game.id}
+                    type="button"
+                    className="game-card"
+                    onClick={() =>
+                      chooseGame(game)
+                    }
+                  >
+                    {game.logo_url && (
+                      <img
+                        src={game.logo_url}
+                        alt={game.name}
+                      />
+                    )}
+
+                    <div>
+                      <strong>
+                        {game.name}
+                      </strong>
+
+                      <small>
+                        View Packages →
+                      </small>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+            </section>
+          ) : (
+
+            /* SELECTED GAME */
+
+            <>
+              <section className="card game-detail-head">
+
                 <button
-                  key={game.id}
-                  className={
-                    selectedGame?.id ===
-                    game.id
-                      ? "game-card selected"
-                      : "game-card"
-                  }
-                  onClick={() =>
-                    chooseGame(game)
+                  type="button"
+                  className="back-game"
+                  onClick={
+                    backToGames
                   }
                 >
-                  {game.logo_url && (
+                  ← All Games
+                </button>
+
+                <div className="game-detail-title">
+
+                  {selectedGame.logo_url && (
                     <img
-                      src={game.logo_url}
-                      alt=""
+                      src={
+                        selectedGame.logo_url
+                      }
+                      alt={
+                        selectedGame.name
+                      }
                     />
                   )}
 
-                  <strong>
-                    {game.name}
-                  </strong>
-
-                  <small>
-                    {game.slug}
-                  </small>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {selectedGame && (
-            <section className="card">
-              <h2>
-                {selectedGame.name}
-              </h2>
-
-              <div className="product-grid">
-                {currentProducts.map(
-                  (product) => (
-                    <button
-                      key={product.id}
-                      className={
-                        selectedProduct?.id ===
-                        product.id
-                          ? "product-card selected"
-                          : "product-card"
-                      }
-                      onClick={() =>
-                        chooseProduct(
-                          product
-                        )
-                      }
-                    >
-                      <span className="package-name">
-                        <b>
-                          {
-                            product.name
-                          }
-                        </b>
-
-                        <small>
-                          SKU:{" "}
-                          {
-                            product.sku
-                          }
-                        </small>
-                      </span>
-
-                      <strong>
-                        {money(
-                          product.selling_price
-                        )}
-                      </strong>
-                    </button>
-                  )
-                )}
-              </div>
-            </section>
-          )}
-
-          {selectedGame &&
-            selectedProduct && (
-              <form
-                className="card checkout"
-                onSubmit={
-                  placeOrder
-                }
-              >
-                <div className="section-title">
                   <div>
+                    <p className="eyebrow">
+                      GAME TOP-UP
+                    </p>
+
                     <h2>
-                      Buy{" "}
                       {
-                        selectedProduct.name
+                        selectedGame.name
                       }
                     </h2>
 
                     <p className="muted">
-                      Package Code:{" "}
+                      Only{" "}
                       {
-                        selectedProduct.sku
-                      }
+                        selectedGame.name
+                      }{" "}
+                      packages are
+                      shown here.
                     </p>
                   </div>
 
-                  <strong>
-                    {money(
-                      selectedProduct.selling_price
-                    )}
-                  </strong>
                 </div>
 
-                <label>
-                  Player ID
+              </section>
 
-                  <input
-                    value={playerId}
-                    onChange={(e) =>
-                      setPlayerId(
-                        e.target.value
+              {/* PACKAGES */}
+
+              <section className="card">
+
+                <div className="section-title">
+                  <div>
+                    <h2>
+                      {
+                        selectedGame.name
+                      }{" "}
+                      Packages
+                    </h2>
+
+                    <p className="muted">
+                      Choose your
+                      package below.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="product-grid">
+
+                  {currentProducts.length >
+                  0 ? (
+                    currentProducts.map(
+                      (product) => (
+                        <button
+                          key={
+                            product.id
+                          }
+                          type="button"
+                          className={
+                            selectedProduct?.id ===
+                            product.id
+                              ? "product-card selected"
+                              : "product-card"
+                          }
+                          onClick={() =>
+                            chooseProduct(
+                              product
+                            )
+                          }
+                        >
+
+                          <span className="package-name">
+
+                            <b>
+                              {
+                                product.name
+                              }
+                            </b>
+
+                            <small>
+                              SKU:{" "}
+                              {
+                                product.sku
+                              }
+                            </small>
+
+                          </span>
+
+                          <strong>
+                            {money(
+                              product.selling_price
+                            )}
+                          </strong>
+
+                        </button>
                       )
-                    }
-                    placeholder="Enter Player ID"
-                  />
-                </label>
+                    )
+                  ) : (
+                    <div className="empty">
+                      No packages available
+                      for{" "}
+                      {
+                        selectedGame.name
+                      }.
+                    </div>
+                  )}
 
-                {selectedGame.slug ===
-                  "pubg-mobile" && (
+                </div>
+
+              </section>
+
+              {/* CHECKOUT */}
+
+              {selectedProduct && (
+                <form
+                  className="card checkout"
+                  onSubmit={
+                    placeOrder
+                  }
+                >
+
+                  <div className="section-title">
+
+                    <div>
+                      <p className="eyebrow">
+                        CHECKOUT
+                      </p>
+
+                      <h2>
+                        Buy{" "}
+                        {
+                          selectedProduct.name
+                        }
+                      </h2>
+
+                      <p className="muted">
+                        Package Code:{" "}
+                        {
+                          selectedProduct.sku
+                        }
+                      </p>
+                    </div>
+
+                    <strong>
+                      {money(
+                        selectedProduct.selling_price
+                      )}
+                    </strong>
+
+                  </div>
+
                   <label>
-                    Server ID
+                    Player ID
 
                     <input
-                      value={serverId}
+                      value={playerId}
                       onChange={(e) =>
-                        setServerId(
+                        setPlayerId(
                           e.target.value
                         )
                       }
-                      placeholder="Enter Server ID"
+                      placeholder="Enter Player ID"
+                      required
                     />
                   </label>
-                )}
 
-                <label>
-                  Payment Method
+                  {selectedGame.slug ===
+                    "pubg-mobile" && (
+                    <label>
+                      Server ID
 
-                  <select
-                    value={gateway}
-                    onChange={(e) =>
-                      setGateway(
-                        e.target.value
-                      )
-                    }
-                  >
-                    <option value="bkash">
-                      bKash
-                    </option>
+                      <input
+                        value={serverId}
+                        onChange={(e) =>
+                          setServerId(
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Server ID"
+                        required
+                      />
+                    </label>
+                  )}
 
-                    <option value="nagad">
-                      Nagad
-                    </option>
+                  <label>
+                    Payment Method
 
-                    <option value="wallet">
-                      Wallet —{" "}
-                      {money(
-                        wallet.balance
-                      )}
-                    </option>
-                  </select>
-                </label>
+                    <select
+                      value={gateway}
+                      onChange={(e) =>
+                        setGateway(
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="bkash">
+                        bKash
+                      </option>
 
-                {gateway ===
-                  "wallet" && (
-                  <div className="wallet-pay-box">
-                    💰 Wallet Balance:{" "}
+                      <option value="nagad">
+                        Nagad
+                      </option>
+
+                      <option value="wallet">
+                        Wallet —{" "}
+                        {money(
+                          wallet.balance
+                        )}
+                      </option>
+                    </select>
+                  </label>
+
+                  {gateway ===
+                    "wallet" && (
+                    <div className="wallet-pay-box">
+                      💰 Wallet Balance:{" "}
+                      <strong>
+                        {money(
+                          wallet.balance
+                        )}
+                      </strong>
+                    </div>
+                  )}
+
+                  <div className="checkout-summary">
+
+                    <span>
+                      Total
+                    </span>
+
                     <strong>
                       {money(
-                        wallet.balance
+                        selectedProduct.selling_price
                       )}
                     </strong>
+
                   </div>
-                )}
 
-                <div className="checkout-summary">
-                  <span>Total</span>
+                  <button
+                    className="primary"
+                    disabled={busy}
+                  >
+                    {busy
+                      ? "Processing…"
+                      : `Buy ${selectedGame.name} Now`}
+                  </button>
 
-                  <strong>
-                    {money(
-                      selectedProduct.selling_price
-                    )}
-                  </strong>
-                </div>
+                </form>
+              )}
 
-                <button
-                  className="primary"
-                  disabled={busy}
-                >
-                  {busy
-                    ? "Processing…"
-                    : "Buy Now"}
-                </button>
-              </form>
-            )}
+            </>
+          )}
+
         </main>
       )}
 
+      {/* ORDERS */}
+
       {tab === "orders" && (
-        <Orders orders={orders} />
+        <Orders
+          orders={orders}
+        />
       )}
+
+      {/* PROFILE */}
 
       {tab === "profile" && (
         <Profile
@@ -913,16 +1060,24 @@ function App() {
           setForm={setProfileForm}
           onSave={saveProfile}
           msg={profileMsg}
-          email={session.user.email}
+          email={
+            session.user.email
+          }
         />
       )}
+
+      {/* WALLET */}
 
       {tab === "wallet" && (
         <Wallet
           wallet={wallet}
-          transactions={walletTx}
+          transactions={
+            walletTx
+          }
         />
       )}
+
+      {/* ADMIN */}
 
       {tab === "admin" && admin && (
         <Admin
@@ -931,12 +1086,15 @@ function App() {
           }
         />
       )}
+
     </div>
   );
 }
 
 
-/* AUTH */
+/* =========================
+   AUTH
+========================= */
 
 function Auth({
   mode,
@@ -958,19 +1116,25 @@ function Auth({
 
   return (
     <div className="auth-page">
+
       <div className="auth-card">
+
         <div className="brand auth-brand">
+
           <div className="brand-logo">
             G
           </div>
 
           <div>
-            <strong>GameON</strong>
+            <strong>
+              GameON
+            </strong>
 
             <span>
               Game Top-Up BD
             </span>
           </div>
+
         </div>
 
         <h1>
@@ -992,6 +1156,7 @@ function Auth({
               : onLogin
           }
         >
+
           {signup && (
             <label>
               Name
@@ -1004,6 +1169,7 @@ function Auth({
                   )
                 }
                 placeholder="Your name"
+                required
               />
             </label>
           )}
@@ -1019,6 +1185,7 @@ function Auth({
                   e.target.value
                 )
               }
+              placeholder="you@example.com"
               required
             />
           </label>
@@ -1034,6 +1201,7 @@ function Auth({
                   e.target.value
                 )
               }
+              placeholder="Your password"
               required
             />
           </label>
@@ -1048,10 +1216,13 @@ function Auth({
               ? "Create Account"
               : "Login"}
           </button>
+
         </form>
 
         <div className="oauth-row">
+
           <button
+            type="button"
             onClick={() =>
               onOAuth("google")
             }
@@ -1060,15 +1231,18 @@ function Auth({
           </button>
 
           <button
+            type="button"
             onClick={() =>
               onOAuth("facebook")
             }
           >
             Continue with Facebook
           </button>
+
         </div>
 
         <button
+          type="button"
           className="link-button"
           onClick={() =>
             setMode(
@@ -1082,13 +1256,17 @@ function Auth({
             ? "Already have an account? Login"
             : "New user? Create an account"}
         </button>
+
       </div>
+
     </div>
   );
 }
 
 
-/* PROFILE */
+/* =========================
+   PROFILE
+========================= */
 
 function Profile({
   profile,
@@ -1100,8 +1278,11 @@ function Profile({
 }) {
   return (
     <main className="content">
+
       <div className="profile-grid">
+
         <section className="card profile-card">
+
           <div className="profile-avatar">
             {(
               form.full_name ||
@@ -1136,6 +1317,7 @@ function Profile({
           <form
             onSubmit={onSave}
           >
+
             <label>
               Full Name
 
@@ -1181,6 +1363,7 @@ function Profile({
             <button className="primary">
               Save Profile
             </button>
+
           </form>
 
           {msg && (
@@ -1188,9 +1371,11 @@ function Profile({
               {msg}
             </div>
           )}
+
         </section>
 
         <section className="card">
+
           <h2>
             Account Information
           </h2>
@@ -1208,30 +1393,41 @@ function Profile({
           <hr />
 
           <p>
-            <b>Account Plan:</b>{" "}
+            <b>
+              Account Plan:
+            </b>{" "}
             {profile?.plan ||
               "free"}
           </p>
 
           <p>
-            <b>Status:</b>{" "}
+            <b>
+              Status:
+            </b>{" "}
             {profile?.status ||
               "active"}
           </p>
 
           <p>
-            <b>Role:</b>{" "}
+            <b>
+              Role:
+            </b>{" "}
             {profile?.role ||
               "customer"}
           </p>
+
         </section>
+
       </div>
+
     </main>
   );
 }
 
 
-/* WALLET */
+/* =========================
+   WALLET
+========================= */
 
 function Wallet({
   wallet,
@@ -1239,9 +1435,13 @@ function Wallet({
 }) {
   return (
     <main className="content">
+
       <div className="wallet-head">
+
         <div>
-          <h1>My Wallet</h1>
+          <h1>
+            My Wallet
+          </h1>
 
           <p className="muted">
             Use wallet balance to buy
@@ -1250,6 +1450,7 @@ function Wallet({
         </div>
 
         <div className="wallet-balance card">
+
           <span>
             Available Balance
           </span>
@@ -1259,17 +1460,22 @@ function Wallet({
               wallet.balance
             )}
           </strong>
+
         </div>
+
       </div>
 
       <section className="card wallet-info">
+
         <h2>
           Wallet Payment
         </h2>
 
         <p>
           Select{" "}
-          <strong>Wallet</strong>{" "}
+          <strong>
+            Wallet
+          </strong>{" "}
           at checkout.
         </p>
 
@@ -1277,6 +1483,7 @@ function Wallet({
           Wallet balance can be used
           directly for game top-up.
         </p>
+
       </section>
 
       <h2>
@@ -1290,6 +1497,7 @@ function Wallet({
         </div>
       ) : (
         <div className="transaction-list">
+
           {transactions.map(
             (transaction) => (
               <div
@@ -1298,6 +1506,7 @@ function Wallet({
                   transaction.id
                 }
               >
+
                 <div>
                   <b>
                     {transaction.description ||
@@ -1327,22 +1536,30 @@ function Wallet({
                     transaction.amount
                   )}
                 </strong>
+
               </div>
             )
           )}
+
         </div>
       )}
+
     </main>
   );
 }
 
 
-/* ORDERS */
+/* =========================
+   ORDERS
+========================= */
 
 function Orders({ orders }) {
   return (
     <main className="content">
-      <h1>My Orders</h1>
+
+      <h1>
+        My Orders
+      </h1>
 
       <p className="muted">
         Only paid orders are shown
@@ -1355,13 +1572,16 @@ function Orders({ orders }) {
         </div>
       ) : (
         <div className="order-list">
+
           {orders.map(
             (order) => (
               <div
                 className="card order-card"
                 key={order.id}
               >
+
                 <div>
+
                   <h3>
                     Order #
                     {order.order_number ||
@@ -1389,6 +1609,7 @@ function Orders({ orders }) {
                       order.created_at
                     ).toLocaleString()}
                   </small>
+
                 </div>
 
                 <strong>
@@ -1396,17 +1617,22 @@ function Orders({ orders }) {
                     order.total
                   )}
                 </strong>
+
               </div>
             )
           )}
+
         </div>
       )}
+
     </main>
   );
 }
 
 
-/* ADMIN */
+/* =========================
+   ADMIN
+========================= */
 
 function Admin({ onBack }) {
   const [users, setUsers] =
@@ -1423,8 +1649,6 @@ function Admin({ onBack }) {
 
   const [adminTab, setAdminTab] =
     useState("users");
-
-  /* NEW UNIQUE ID SEARCH */
 
   const [userSearch, setUserSearch] =
     useState("");
@@ -1589,8 +1813,6 @@ function Admin({ onBack }) {
     await loadAdminData();
   }
 
-  /* SEARCH BY UNIQUE ID */
-
   const searchText =
     userSearch.trim().toLowerCase();
 
@@ -1609,7 +1831,9 @@ function Admin({ onBack }) {
 
   return (
     <main className="content">
+
       <div className="section-title">
+
         <div>
           <h1>
             🛡️ Admin Panel
@@ -1626,6 +1850,7 @@ function Admin({ onBack }) {
         >
           Back to Shop
         </button>
+
       </div>
 
       {msg && (
@@ -1635,6 +1860,7 @@ function Admin({ onBack }) {
       )}
 
       <div className="admin-tabs">
+
         <button
           className={
             adminTab === "users"
@@ -1664,11 +1890,14 @@ function Admin({ onBack }) {
         >
           📦 Orders
         </button>
+
       </div>
 
       {adminTab === "users" && (
         <section className="card">
+
           <div className="section-title">
+
             <div>
               <h2>
                 👥 User Management
@@ -1687,9 +1916,10 @@ function Admin({ onBack }) {
             >
               Refresh
             </button>
+
           </div>
 
-          {/* UNIQUE ID SEARCH BOX */}
+          {/* UNIQUE ID SEARCH */}
 
           <div
             className="user-search-box"
@@ -1701,6 +1931,7 @@ function Admin({ onBack }) {
               marginBottom: "20px",
             }}
           >
+
             <label
               style={{
                 flex: "1",
@@ -1730,6 +1961,7 @@ function Admin({ onBack }) {
                 Clear
               </button>
             )}
+
           </div>
 
           {loading ? (
@@ -1742,15 +1974,20 @@ function Admin({ onBack }) {
             </div>
           ) : !filteredUsers.length ? (
             <div className="empty">
+
               🔎 No user found with
               Unique ID:
+
               <br />
+
               <strong>
                 {userSearch}
               </strong>
+
             </div>
           ) : (
             <div className="admin-users">
+
               {filteredUsers.map(
                 (user) => (
                   <div
@@ -1759,7 +1996,9 @@ function Admin({ onBack }) {
                       user.id
                     }
                   >
+
                     <div className="admin-user-info">
+
                       <div className="profile-avatar">
                         {(
                           user.full_name ||
@@ -1774,6 +2013,7 @@ function Admin({ onBack }) {
                       </div>
 
                       <div>
+
                         <h3>
                           {user.full_name ||
                             "No Name"}
@@ -1808,10 +2048,13 @@ function Admin({ onBack }) {
                             user.created_at
                           ).toLocaleDateString()}
                         </small>
+
                       </div>
+
                     </div>
 
                     <div className="admin-user-status">
+
                       <span
                         className={
                           user.status ===
@@ -1836,9 +2079,11 @@ function Admin({ onBack }) {
                         Role:{" "}
                         {user.role}
                       </span>
+
                     </div>
 
                     <div className="admin-actions">
+
                       <button
                         onClick={() =>
                           changePlan(
@@ -1871,6 +2116,7 @@ function Admin({ onBack }) {
 
                       {user.status ===
                       "blocked" ? (
+
                         <button
                           className="success-btn"
                           onClick={() =>
@@ -1882,7 +2128,9 @@ function Admin({ onBack }) {
                         >
                           🔓 Unblock
                         </button>
+
                       ) : (
+
                         <button
                           className="danger-btn"
                           onClick={() =>
@@ -1894,19 +2142,26 @@ function Admin({ onBack }) {
                         >
                           🚫 Block
                         </button>
+
                       )}
+
                     </div>
+
                   </div>
                 )
               )}
+
             </div>
           )}
+
         </section>
       )}
 
       {adminTab === "orders" && (
         <section className="card">
+
           <div className="section-title">
+
             <div>
               <h2>
                 📦 Paid Orders
@@ -1925,6 +2180,7 @@ function Admin({ onBack }) {
             >
               Refresh
             </button>
+
           </div>
 
           {!paidOrders.length ? (
@@ -1933,6 +2189,7 @@ function Admin({ onBack }) {
             </div>
           ) : (
             <div className="order-list">
+
               {paidOrders.map(
                 (order) => (
                   <div
@@ -1941,7 +2198,9 @@ function Admin({ onBack }) {
                       order.id
                     }
                   >
+
                     <div>
+
                       <h3>
                         Order #
                         {order.order_number ||
@@ -1994,6 +2253,7 @@ function Admin({ onBack }) {
                           )}
                         </b>
                       </p>
+
                     </div>
 
                     {order.fulfillment_status !==
@@ -2016,17 +2276,25 @@ function Admin({ onBack }) {
                         ✅ Completed
                       </span>
                     )}
+
                   </div>
                 )
               )}
+
             </div>
           )}
+
         </section>
       )}
+
     </main>
   );
 }
 
+
+/* =========================
+   START APP
+========================= */
 
 createRoot(
   document.getElementById("root")
