@@ -10,7 +10,9 @@ const supabase=createClient(
 
 const money=n=>`৳${Number(n||0).toLocaleString('en-BD')}`;
 
+
 function Auth({onDone}){
+
  const [mode,setMode]=useState('login');
  const [email,setEmail]=useState('');
  const [password,setPassword]=useState('');
@@ -19,7 +21,9 @@ function Auth({onDone}){
  const [msg,setMsg]=useState('');
 
  async function submit(e){
+
   e.preventDefault();
+
   setBusy(true);
   setMsg('');
 
@@ -40,30 +44,42 @@ function Auth({onDone}){
   }
 
   if(mode==='signup'&&!r.data.session){
+
    return setMsg(
     'Account created. Check your email if confirmation is enabled.'
    );
+
   }
 
   onDone?.();
+
  }
 
+
  async function socialLogin(provider){
+
   setOauthBusy(provider);
   setMsg('');
 
   const {error}=await supabase.auth.signInWithOAuth({
+
    provider,
+
    options:{
     redirectTo:window.location.origin
    }
+
   });
 
   if(error){
+
    setOauthBusy('');
    setMsg(error.message);
+
   }
+
  }
+
 
  return <div className="auth">
 
@@ -99,18 +115,22 @@ function Auth({onDone}){
     />
 
     <button disabled={busy||!!oauthBusy}>
+
      {busy
       ?'Please wait…'
       :mode==='login'
        ?'Login'
        :'Sign up'}
+
     </button>
 
    </form>
 
+
    <div className="oauth-divider">
     <span>or continue with</span>
    </div>
+
 
    <div className="social-buttons">
 
@@ -120,12 +140,17 @@ function Auth({onDone}){
      disabled={busy||!!oauthBusy}
      onClick={()=>socialLogin('google')}
     >
-     <span className="social-icon">G</span>
+
+     <span className="social-icon">
+      G
+     </span>
 
      {oauthBusy==='google'
       ?'Connecting…'
       :'Continue with Google'}
+
     </button>
+
 
     <button
      type="button"
@@ -133,20 +158,26 @@ function Auth({onDone}){
      disabled={busy||!!oauthBusy}
      onClick={()=>socialLogin('facebook')}
     >
-     <span className="social-icon">f</span>
+
+     <span className="social-icon">
+      f
+     </span>
 
      {oauthBusy==='facebook'
       ?'Connecting…'
       :'Continue with Facebook'}
+
     </button>
 
    </div>
+
 
    {msg&&
     <p className="notice">
      {msg}
     </p>
    }
+
 
    <button
     type="button"
@@ -159,14 +190,18 @@ function Auth({onDone}){
      )
     }
    >
+
     {mode==='login'
      ?'Need an account? Sign up'
      :'Already have an account? Login'}
+
    </button>
 
   </div>
- </div>
+
+ </div>;
 }
+
 
 
 function App(){
@@ -195,12 +230,14 @@ function App(){
     setSession(data.session);
    });
 
+
   const {data:l}=
    supabase.auth.onAuthStateChange(
     (_event,s)=>{
      setSession(s);
     }
    );
+
 
   return()=>{
    l.subscription.unsubscribe();
@@ -210,9 +247,11 @@ function App(){
 
 
  useEffect(()=>{
+
   if(session){
    load();
   }
+
  },[session]);
 
 
@@ -247,6 +286,7 @@ function App(){
     .from('orders')
     .select('*')
     .eq('user_id',session.user.id)
+    .eq('payment_status','paid')
     .order('created_at',{
      ascending:false
     })
@@ -254,14 +294,23 @@ function App(){
 
   ]);
 
+
   setProfile(p);
   setGames(g||[]);
   setProducts(pr||[]);
-  setOrders(o||[]);
+
+  // Customer only sees successfully paid orders.
+  setOrders(
+   (o||[]).filter(
+    order=>order.payment_status==='paid'
+   )
+  );
+
 
   if(!gameId&&g?.[0]){
    setGameId(g[0].id);
   }
+
  }
 
 
@@ -299,8 +348,10 @@ function App(){
    return;
   }
 
+
   setBusy(true);
   setMsg('');
+
 
   const {
    data:order,
@@ -324,6 +375,7 @@ function App(){
    return setMsg(
     error.message
    );
+
   }
 
 
@@ -353,7 +405,10 @@ function App(){
 
    await load();
 
+   setTab('shop');
+
    return;
+
   }
 
 
@@ -363,6 +418,7 @@ function App(){
     pay.payment_url;
 
    return;
+
   }
 
 
@@ -377,12 +433,15 @@ function App(){
 
   await load();
 
-  setTab('orders');
+  setTab('shop');
+
  }
 
 
  async function logout(){
+
   await supabase.auth.signOut();
+
  }
 
 
@@ -396,6 +455,7 @@ function App(){
      )
    }
   />;
+
  }
 
 
@@ -406,11 +466,13 @@ function App(){
 
  return <div className="app">
 
+
   <header>
 
    <div className="brand">
     🎮 <b>Game Top-Up BD</b>
    </div>
+
 
    <div className="head-actions">
 
@@ -418,7 +480,9 @@ function App(){
      {session.user.email}
     </span>
 
+
     {admin&&
+
      <button
       className="small"
       onClick={()=>
@@ -429,11 +493,15 @@ function App(){
        )
       }
      >
+
       {tab==='admin'
        ?'Shop'
        :'Admin'}
+
      </button>
+
     }
+
 
     <button
      className="small ghost"
@@ -447,6 +515,7 @@ function App(){
   </header>
 
 
+
   {tab==='admin'&&admin
 
    ?<Admin
@@ -456,6 +525,7 @@ function App(){
     />
 
    :<>
+
 
     <nav className="tabs">
 
@@ -471,6 +541,7 @@ function App(){
      >
       Top Up
      </button>
+
 
      <button
       className={
@@ -488,9 +559,11 @@ function App(){
     </nav>
 
 
+
     {tab==='shop'
 
      ?<main className="grid">
+
 
        <section>
 
@@ -506,6 +579,7 @@ function App(){
          </p>
 
         </div>
+
 
 
         <div className="game-row">
@@ -535,6 +609,7 @@ function App(){
 
            }
 
+
            <b>
             {g.name}
            </b>
@@ -544,6 +619,7 @@ function App(){
          )}
 
         </div>
+
 
 
         <div className="packages">
@@ -579,6 +655,7 @@ function App(){
        </section>
 
 
+
        <aside className="card checkout">
 
         <h2>
@@ -589,6 +666,7 @@ function App(){
         {selected
 
          ?<>
+
 
           <div className="summary">
 
@@ -605,7 +683,9 @@ function App(){
           </div>
 
 
+
           <form onSubmit={placeOrder}>
+
 
            <label>
 
@@ -621,6 +701,7 @@ function App(){
             />
 
            </label>
+
 
 
            <label>
@@ -640,6 +721,7 @@ function App(){
             />
 
            </label>
+
 
 
            <label>
@@ -666,6 +748,7 @@ function App(){
            </label>
 
 
+
            <button disabled={busy}>
 
             {busy
@@ -674,7 +757,9 @@ function App(){
 
            </button>
 
+
           </form>
+
 
 
           <div className="paybox">
@@ -684,15 +769,13 @@ function App(){
            </b>
 
            <p>
-            bKash checkout is wired
-            through a Supabase Edge
-            Function. Nagad is included
-            in the UI and backend
-            contract, but its official
-            merchant API credentials
-            and endpoints must be
-            supplied before live
-            activation.
+            After successful payment,
+            your order will appear in
+            My Orders as pending while
+            the top-up is being delivered.
+            Once the diamonds reach your
+            Player ID, it will show
+            Success.
            </p>
 
           </div>
@@ -706,6 +789,7 @@ function App(){
         }
 
 
+
         {msg&&
          <div className="notice">
           {msg}
@@ -715,6 +799,7 @@ function App(){
        </aside>
 
       </main>
+
 
      :<Orders orders={orders}/>
 
@@ -726,6 +811,7 @@ function App(){
 
  </div>;
 }
+
 
 
 function Orders({orders}){
@@ -740,17 +826,25 @@ function Orders({orders}){
   {!orders.length
 
    ?<div className="card empty">
-     No orders yet.
+
+     No paid orders yet.
+
     </div>
+
 
    :<div className="order-list">
 
-    {orders.map(o=>
+    {orders.map(o=>{
 
-     <div
+     const success=
+      o.fulfillment_status==='completed';
+
+
+     return <div
       className="card order"
       key={o.id}
      >
+
 
       <div>
 
@@ -758,9 +852,11 @@ function Orders({orders}){
         Order #{o.id.slice(0,8)}
        </b>
 
+
        <p>
         Player: {o.player_id}
        </p>
+
 
        <small>
         {new Date(
@@ -771,25 +867,41 @@ function Orders({orders}){
       </div>
 
 
+
       <div className="right">
+
 
        <strong>
         {money(o.total)}
        </strong>
 
-       <span className="pill">
-        Payment: {o.payment_status}
-       </span>
+
 
        <span className="pill">
-        Fulfillment: {o.fulfillment_status}
+        Payment: Paid
        </span>
+
+
+
+       <span className="pill">
+
+        {success
+
+         ?'Success ✅'
+
+         :'Top-up pending ⏳'
+
+        }
+
+       </span>
+
 
       </div>
 
-     </div>
 
-    )}
+     </div>;
+
+    })}
 
    </div>
 
@@ -797,6 +909,7 @@ function Orders({orders}){
 
  </main>;
 }
+
 
 
 function Admin({onBack}){
@@ -842,14 +955,18 @@ function Admin({onBack}){
    setMsg(oe.message);
   }
 
+
   setOrders(o||[]);
   setGames(g||[]);
   setProducts(p||[]);
+
  }
 
 
  useEffect(()=>{
+
   load();
+
  },[]);
 
 
@@ -861,6 +978,7 @@ function Admin({onBack}){
 
   setMsg('');
 
+
   const {error}=
    await supabase
     .from('orders')
@@ -871,16 +989,23 @@ function Admin({onBack}){
 
 
   if(error){
+
    setMsg(error.message);
+
   }else{
+
    load();
+
   }
+
  }
 
 
  return <main className="admin">
 
+
   <div className="admin-head">
+
 
    <div>
 
@@ -891,11 +1016,13 @@ function Admin({onBack}){
      ← Shop
     </button>
 
+
     <h1>
      Admin Dashboard
     </h1>
 
    </div>
+
 
 
    <div className="stats">
@@ -914,10 +1041,13 @@ function Admin({onBack}){
 
    </div>
 
+
   </div>
 
 
+
   <nav className="tabs">
+
 
    <button
     className={
@@ -931,6 +1061,7 @@ function Admin({onBack}){
    >
     Orders
    </button>
+
 
 
    <button
@@ -947,6 +1078,7 @@ function Admin({onBack}){
    </button>
 
 
+
    <button
     className={
      tab==='products'
@@ -960,7 +1092,9 @@ function Admin({onBack}){
     Products
    </button>
 
+
   </nav>
+
 
 
   {msg&&
@@ -968,6 +1102,7 @@ function Admin({onBack}){
     {msg}
    </div>
   }
+
 
 
   {tab==='orders'&&
@@ -979,15 +1114,35 @@ function Admin({onBack}){
      <thead>
 
       <tr>
-       <th>Order</th>
-       <th>Player</th>
-       <th>Total</th>
-       <th>Payment</th>
-       <th>Fulfillment</th>
-       <th>Action</th>
+
+       <th>
+        Order
+       </th>
+
+       <th>
+        Player
+       </th>
+
+       <th>
+        Total
+       </th>
+
+       <th>
+        Payment
+       </th>
+
+       <th>
+        Fulfillment
+       </th>
+
+       <th>
+        Action
+       </th>
+
       </tr>
 
      </thead>
+
 
 
      <tbody>
@@ -996,25 +1151,31 @@ function Admin({onBack}){
 
        <tr key={o.id}>
 
+
         <td>
          {o.id.slice(0,8)}
         </td>
+
 
         <td>
          {o.player_id}
         </td>
 
+
         <td>
          {money(o.total)}
         </td>
+
 
         <td>
          {o.payment_status}
         </td>
 
+
         <td>
          {o.fulfillment_status}
         </td>
+
 
         <td>
 
@@ -1053,6 +1214,7 @@ function Admin({onBack}){
 
         </td>
 
+
        </tr>
 
       )}
@@ -1062,7 +1224,9 @@ function Admin({onBack}){
     </table>
 
    </div>
+
   }
+
 
 
   {tab==='games'&&
@@ -1089,7 +1253,9 @@ function Admin({onBack}){
     )}
 
    </div>
+
   }
+
 
 
   {tab==='products'&&
@@ -1118,10 +1284,13 @@ function Admin({onBack}){
     )}
 
    </div>
+
   }
+
 
  </main>;
 }
+
 
 
 createRoot(
