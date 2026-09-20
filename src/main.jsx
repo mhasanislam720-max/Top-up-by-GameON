@@ -11,7 +11,10 @@ const SUPABASE_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 const money = (value) =>
   `৳${Number(value || 0).toLocaleString("en-BD", {
@@ -21,7 +24,9 @@ const money = (value) =>
 
 const shortCode = (value) => {
   const text = String(value || "");
-  return text.length > 14 ? `${text.slice(0, 10)}…` : text;
+  return text.length > 14
+    ? `${text.slice(0, 10)}…`
+    : text;
 };
 
 function App() {
@@ -32,60 +37,95 @@ function App() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  const [wallet, setWallet] = useState({ balance: 0 });
+  const [wallet, setWallet] = useState({
+    balance: 0,
+  });
+
   const [walletTx, setWalletTx] = useState([]);
-  const [walletDeposits, setWalletDeposits] = useState([]);
+  const [walletDeposits, setWalletDeposits] =
+    useState([]);
 
   const [tab, setTab] = useState("shop");
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [selectedGame, setSelectedGame] =
+    useState(null);
+
+  const [selectedProduct, setSelectedProduct] =
+    useState(null);
 
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
-  const [gateway, setGateway] = useState("bkash");
+
+  const [gateway, setGateway] =
+    useState("bkash");
+
+  // ================================
+  // UNIPIN STATE
+  // ================================
+
+  const [voucherSerial, setVoucherSerial] =
+    useState("");
+
+  const [voucherPin, setVoucherPin] =
+    useState("");
 
   const [mode, setMode] = useState("login");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  const [profileForm, setProfileForm] = useState({
-    full_name: "",
-    phone: "",
-  });
+  const [profileForm, setProfileForm] =
+    useState({
+      full_name: "",
+      phone: "",
+    });
 
   const [message, setMessage] = useState("");
-  const [profileMsg, setProfileMsg] = useState("");
+  const [profileMsg, setProfileMsg] =
+    useState("");
+
   const [busy, setBusy] = useState(false);
 
   const admin =
-    profile?.role === "admin" && profile?.status === "active";
+    profile?.role === "admin" &&
+    profile?.status === "active";
 
   useEffect(() => {
     loadSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession || null);
+    } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession || null);
 
-      if (!newSession) {
-        setProfile(null);
-        setOrders([]);
-        setWallet({ balance: 0 });
-        setWalletTx([]);
-        setWalletDeposits([]);
-        setTab("shop");
-        setSelectedGame(null);
-        setSelectedProduct(null);
+        if (!newSession) {
+          setProfile(null);
+          setOrders([]);
+          setWallet({ balance: 0 });
+          setWalletTx([]);
+          setWalletDeposits([]);
+          setTab("shop");
+          setSelectedGame(null);
+          setSelectedProduct(null);
+
+          setPlayerId("");
+          setServerId("");
+          setVoucherSerial("");
+          setVoucherPin("");
+        }
       }
-    });
+    );
 
-    return () => subscription.unsubscribe();
+    return () =>
+      subscription.unsubscribe();
   }, []);
 
   async function loadSession() {
-    const { data } = await supabase.auth.getSession();
+    const { data } =
+      await supabase.auth.getSession();
+
     setSession(data.session || null);
   }
 
@@ -132,7 +172,9 @@ function App() {
         .select("*")
         .eq("user_id", uid)
         .eq("payment_status", "paid")
-        .order("created_at", { ascending: false })
+        .order("created_at", {
+          ascending: false,
+        })
         .limit(50),
 
       supabase
@@ -147,7 +189,9 @@ function App() {
           "id,type,amount,description,status,created_at"
         )
         .eq("user_id", uid)
-        .order("created_at", { ascending: false })
+        .order("created_at", {
+          ascending: false,
+        })
         .limit(30),
 
       supabase
@@ -156,7 +200,9 @@ function App() {
           "id,amount,gateway,status,created_at,paid_at"
         )
         .eq("user_id", uid)
-        .order("created_at", { ascending: false })
+        .order("created_at", {
+          ascending: false,
+        })
         .limit(20),
     ]);
 
@@ -170,26 +216,42 @@ function App() {
       return;
     }
 
-    if (profileRes.data.status === "blocked") {
+    if (
+      profileRes.data.status ===
+      "blocked"
+    ) {
       await supabase.auth.signOut();
-      setMessage("Your account has been blocked by admin.");
+
+      setMessage(
+        "Your account has been blocked by admin."
+      );
+
       return;
     }
 
     setProfile(profileRes.data);
 
     setProfileForm({
-      full_name: profileRes.data.full_name || "",
-      phone: profileRes.data.phone || "",
+      full_name:
+        profileRes.data.full_name || "",
+      phone:
+        profileRes.data.phone || "",
     });
 
     setGames(gamesRes.data || []);
     setProducts(productsRes.data || []);
     setOrders(ordersRes.data || []);
 
-    setWallet(walletRes.data || { balance: 0 });
+    setWallet(
+      walletRes.data || {
+        balance: 0,
+      }
+    );
+
     setWalletTx(txRes.data || []);
-    setWalletDeposits(depositsRes.data || []);
+    setWalletDeposits(
+      depositsRes.data || []
+    );
   }
 
   async function login(e) {
@@ -220,15 +282,16 @@ function App() {
     setMessage("");
     setBusy(true);
 
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          full_name: name.trim(),
+    const { error } =
+      await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: name.trim(),
+          },
         },
-      },
-    });
+      });
 
     setBusy(false);
 
@@ -263,9 +326,15 @@ function App() {
 
     setProfile(null);
     setSession(null);
+
     setTab("shop");
     setSelectedGame(null);
     setSelectedProduct(null);
+
+    setPlayerId("");
+    setServerId("");
+    setVoucherSerial("");
+    setVoucherPin("");
   }
 
   async function saveProfile(e) {
@@ -273,23 +342,31 @@ function App() {
 
     setProfileMsg("");
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name:
-          profileForm.full_name.trim() || null,
-        phone:
-          profileForm.phone.trim() || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", session.user.id);
+    const { error } =
+      await supabase
+        .from("profiles")
+        .update({
+          full_name:
+            profileForm.full_name.trim() ||
+            null,
+
+          phone:
+            profileForm.phone.trim() ||
+            null,
+
+          updated_at:
+            new Date().toISOString(),
+        })
+        .eq("id", session.user.id);
 
     if (error) {
       setProfileMsg(error.message);
       return;
     }
 
-    setProfileMsg("Profile saved successfully.");
+    setProfileMsg(
+      "Profile saved successfully."
+    );
 
     await load();
   }
@@ -298,25 +375,45 @@ function App() {
     if (!selectedGame) return [];
 
     return products.filter(
-      (product) => product.game_id === selectedGame.id
+      (product) =>
+        product.game_id ===
+        selectedGame.id
     );
   }, [products, selectedGame]);
 
   function chooseGame(game) {
     setSelectedGame(game);
     setSelectedProduct(null);
+
     setPlayerId("");
     setServerId("");
+
+    setVoucherSerial("");
+    setVoucherPin("");
+
+    setGateway("bkash");
+
     setMessage("");
   }
 
   function backToGames() {
     setSelectedGame(null);
     setSelectedProduct(null);
+
     setPlayerId("");
     setServerId("");
+
+    setVoucherSerial("");
+    setVoucherPin("");
+
+    setGateway("bkash");
+
     setMessage("");
   }
+
+  // =====================================================
+  // PLACE ORDER
+  // =====================================================
 
   async function placeOrder(e) {
     e.preventDefault();
@@ -340,47 +437,81 @@ function App() {
 
     const needsServer =
       selectedGame.region_required ||
-      selectedGame.slug === "pubg-mobile";
+      selectedGame.slug ===
+        "pubg-mobile";
 
-    if (needsServer && !serverId.trim()) {
+    if (
+      needsServer &&
+      !serverId.trim()
+    ) {
       setMessage("Enter Server ID.");
       return;
+    }
+
+    // =================================================
+    // UNIPIN VOUCHER VALIDATION
+    // Free Fire only
+    // =================================================
+
+    if (
+      selectedGame.slug ===
+        "free-fire" &&
+      gateway === "unipin_voucher"
+    ) {
+      if (!voucherSerial.trim()) {
+        setMessage(
+          "Enter UniPin Voucher Serial."
+        );
+        return;
+      }
+
+      if (!voucherPin.trim()) {
+        setMessage(
+          "Enter UniPin Voucher PIN."
+        );
+        return;
+      }
     }
 
     const total = Number(
       selectedProduct.selling_price || 0
     );
 
-    if (
-      gateway === "wallet" &&
-      Number(wallet.balance || 0) < total
-    ) {
+    if (!Number.isFinite(total) || total <= 0) {
       setMessage(
-        "Insufficient wallet balance. Add money first."
+        "Invalid product price."
       );
       return;
     }
 
     setBusy(true);
 
-    const orderId = crypto.randomUUID();
+    const orderId =
+      crypto.randomUUID();
 
-    const { error } = await supabase
-      .from("orders")
-      .insert({
-        id: orderId,
-        user_id: session.user.id,
-        game_id: selectedGame.id,
-        product_id: selectedProduct.id,
-        player_id: playerId.trim(),
-        server_id: serverId.trim() || null,
-        quantity: 1,
-        subtotal: total,
-        discount: 0,
-        total,
-        payment_status: "pending",
-        fulfillment_status: "pending",
-      });
+    // =================================================
+    // CREATE PENDING ORDER
+    // =================================================
+
+    const { error } =
+      await supabase
+        .from("orders")
+        .insert({
+          id: orderId,
+          user_id: session.user.id,
+          game_id: selectedGame.id,
+          product_id: selectedProduct.id,
+          player_id: playerId.trim(),
+          server_id:
+            serverId.trim() || null,
+          quantity: 1,
+          subtotal: total,
+          discount: 0,
+          total,
+          payment_status: "pending",
+          fulfillment_status:
+            "pending",
+        });
 
     if (error) {
       setBusy(false);
@@ -388,25 +519,116 @@ function App() {
       return;
     }
 
-    if (gateway === "wallet") {
-      const { error: walletError } =
-        await supabase.rpc(
-          "pay_order_with_wallet",
-          {
-            p_order_id: orderId,
-          }
+    // =================================================
+    // UNIPIN VOUCHER
+    // =================================================
+
+    if (
+      selectedGame.slug ===
+        "free-fire" &&
+      gateway === "unipin_voucher"
+    ) {
+      const {
+        data,
+        error: voucherError,
+      } = await supabase.functions.invoke(
+        "unipin-voucher-topup",
+        {
+          body: {
+            order_id: orderId,
+            player_id:
+              playerId.trim(),
+            serial:
+              voucherSerial.trim(),
+            pin: voucherPin.trim(),
+          },
+        }
+      );
+
+      setBusy(false);
+
+      if (voucherError) {
+        setMessage(
+          voucherError.message ||
+            "UniPin voucher processing failed."
         );
+
+        await load();
+        return;
+      }
+
+      if (data?.success) {
+        setVoucherSerial("");
+        setVoucherPin("");
+
+        setPlayerId("");
+        setServerId("");
+
+        setSelectedProduct(null);
+
+        await load();
+
+        setTab("orders");
+
+        setMessage(
+          "✅ UniPin Voucher successfully submitted!"
+        );
+
+        return;
+      }
+
+      setMessage(
+        data?.error ||
+          "UniPin voucher could not be processed."
+      );
+
+      await load();
+
+      return;
+    }
+
+    // =================================================
+    // WALLET PAYMENT
+    // =================================================
+
+    if (gateway === "wallet") {
+      if (
+        Number(wallet.balance || 0) <
+        total
+      ) {
+        setBusy(false);
+
+        setMessage(
+          "Insufficient wallet balance. Add money first."
+        );
+
+        return;
+      }
+
+      const {
+        error: walletError,
+      } = await supabase.rpc(
+        "pay_order_with_wallet",
+        {
+          p_order_id: orderId,
+        }
+      );
 
       setBusy(false);
 
       if (walletError) {
-        setMessage(walletError.message);
+        setMessage(
+          walletError.message
+        );
+
         await load();
+
         return;
       }
 
       setPlayerId("");
       setServerId("");
+
       setSelectedProduct(null);
 
       await load();
@@ -420,18 +642,23 @@ function App() {
       return;
     }
 
+    // =================================================
+    // BKASH / NAGAD
+    // =================================================
+
     const {
       data: payment,
       error: paymentError,
-    } = await supabase.functions.invoke(
-      "payment-init",
-      {
-        body: {
-          order_id: orderId,
-          gateway,
-        },
-      }
-    );
+    } =
+      await supabase.functions.invoke(
+        "payment-init",
+        {
+          body: {
+            order_id: orderId,
+            gateway,
+          },
+        }
+      );
 
     setBusy(false);
 
@@ -442,11 +669,14 @@ function App() {
       );
 
       await load();
+
       return;
     }
 
     if (payment?.payment_url) {
-      window.location.href = payment.payment_url;
+      window.location.href =
+        payment.payment_url;
+
       return;
     }
 
@@ -458,18 +688,34 @@ function App() {
     await load();
   }
 
-  async function addMoney(amount, selectedGateway) {
+  // =====================================================
+  // ADD MONEY
+  // =====================================================
+
+  async function addMoney(
+    amount,
+    selectedGateway
+  ) {
     setMessage("");
 
     const value = Number(amount);
 
-    if (!Number.isFinite(value) || value <= 0) {
-      setMessage("Enter a valid amount.");
+    if (
+      !Number.isFinite(value) ||
+      value <= 0
+    ) {
+      setMessage(
+        "Enter a valid amount."
+      );
+
       return;
     }
 
     if (value < 20) {
-      setMessage("Minimum add money amount is ৳20.");
+      setMessage(
+        "Minimum add money amount is ৳20."
+      );
+
       return;
     }
 
@@ -478,15 +724,17 @@ function App() {
     const {
       data,
       error,
-    } = await supabase.functions.invoke(
-      "wallet-deposit-init",
-      {
-        body: {
-          amount: value,
-          gateway: selectedGateway,
-        },
-      }
-    );
+    } =
+      await supabase.functions.invoke(
+        "wallet-deposit-init",
+        {
+          body: {
+            amount: value,
+            gateway:
+              selectedGateway,
+          },
+        }
+      );
 
     setBusy(false);
 
@@ -495,11 +743,14 @@ function App() {
         error.message ||
           "Wallet payment could not start."
       );
+
       return;
     }
 
     if (data?.payment_url) {
-      window.location.href = data.payment_url;
+      window.location.href =
+        data.payment_url;
+
       return;
     }
 
@@ -508,6 +759,10 @@ function App() {
         "Could not start wallet payment."
     );
   }
+
+  // =====================================================
+  // AUTH SCREEN
+  // =====================================================
 
   if (!session) {
     return (
@@ -529,40 +784,57 @@ function App() {
     );
   }
 
+  // =====================================================
+  // MAIN APP
+  // =====================================================
+
   return (
     <div className="app">
       <header className="topbar">
         <div
           className="brand"
-          onClick={() => setTab("shop")}
+          onClick={() =>
+            setTab("shop")
+          }
         >
-          <div className="brand-logo">G</div>
+          <div className="brand-logo">
+            G
+          </div>
 
           <div>
             <strong>GameON</strong>
-            <span>Game Top-Up BD</span>
+            <span>
+              Game Top-Up BD
+            </span>
           </div>
         </div>
 
         <div className="top-actions">
           <button
             className="small"
-            onClick={() => setTab("profile")}
+            onClick={() =>
+              setTab("profile")
+            }
           >
             Profile
           </button>
 
           <button
             className="small"
-            onClick={() => setTab("wallet")}
+            onClick={() =>
+              setTab("wallet")
+            }
           >
-            Wallet {money(wallet.balance)}
+            Wallet{" "}
+            {money(wallet.balance)}
           </button>
 
           {admin && (
             <button
               className="small"
-              onClick={() => setTab("admin")}
+              onClick={() =>
+                setTab("admin")
+              }
             >
               🛡️ Admin
             </button>
@@ -579,37 +851,67 @@ function App() {
 
       <nav className="tabs">
         <button
-          className={tab === "shop" ? "active" : ""}
-          onClick={() => setTab("shop")}
+          className={
+            tab === "shop"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTab("shop")
+          }
         >
           🛒 Shop
         </button>
 
         <button
-          className={tab === "orders" ? "active" : ""}
-          onClick={() => setTab("orders")}
+          className={
+            tab === "orders"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTab("orders")
+          }
         >
           📦 My Orders
         </button>
 
         <button
-          className={tab === "profile" ? "active" : ""}
-          onClick={() => setTab("profile")}
+          className={
+            tab === "profile"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTab("profile")
+          }
         >
           👤 Profile
         </button>
 
         <button
-          className={tab === "wallet" ? "active" : ""}
-          onClick={() => setTab("wallet")}
+          className={
+            tab === "wallet"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTab("wallet")
+          }
         >
           💰 Wallet
         </button>
 
         {admin && (
           <button
-            className={tab === "admin" ? "active" : ""}
-            onClick={() => setTab("admin")}
+            className={
+              tab === "admin"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setTab("admin")
+            }
           >
             🛡️ Admin
           </button>
@@ -628,9 +930,15 @@ function App() {
           selectedGame={selectedGame}
           chooseGame={chooseGame}
           backToGames={backToGames}
-          currentProducts={currentProducts}
-          selectedProduct={selectedProduct}
-          setSelectedProduct={setSelectedProduct}
+          currentProducts={
+            currentProducts
+          }
+          selectedProduct={
+            selectedProduct
+          }
+          setSelectedProduct={
+            setSelectedProduct
+          }
           playerId={playerId}
           setPlayerId={setPlayerId}
           serverId={serverId}
@@ -640,6 +948,16 @@ function App() {
           wallet={wallet}
           placeOrder={placeOrder}
           busy={busy}
+          voucherSerial={
+            voucherSerial
+          }
+          setVoucherSerial={
+            setVoucherSerial
+          }
+          voucherPin={voucherPin}
+          setVoucherPin={
+            setVoucherPin
+          }
         />
       )}
 
@@ -669,11 +987,19 @@ function App() {
       )}
 
       {tab === "admin" && admin && (
-        <Admin onBack={() => setTab("shop")} />
+        <Admin
+          onBack={() =>
+            setTab("shop")
+          }
+        />
       )}
     </div>
   );
 }
+
+// =====================================================
+// SHOP
+// =====================================================
 
 function Shop({
   games,
@@ -692,7 +1018,17 @@ function Shop({
   wallet,
   placeOrder,
   busy,
+
+  voucherSerial,
+  setVoucherSerial,
+  voucherPin,
+  setVoucherPin,
 }) {
+  const isUniPin =
+    selectedGame?.slug ===
+      "free-fire" &&
+    gateway === "unipin_voucher";
+
   return (
     <main className="content">
       <section className="hero">
@@ -703,8 +1039,8 @@ function Shop({
         <h1>GameON Top-Up</h1>
 
         <p>
-          Free Fire Diamonds এবং PUBG Mobile UC
-          দ্রুত কিনুন।
+          Free Fire Diamonds এবং PUBG
+          Mobile UC দ্রুত কিনুন।
         </p>
       </section>
 
@@ -717,8 +1053,8 @@ function Shop({
           <h2>Select Game</h2>
 
           <p className="muted">
-            Game select করলে শুধু ওই game-এর
-            package দেখাবে।
+            Game select করলে শুধু ওই
+            game-এর package দেখাবে।
           </p>
 
           <div className="game-grid">
@@ -727,7 +1063,9 @@ function Shop({
                 key={game.id}
                 type="button"
                 className="game-card"
-                onClick={() => chooseGame(game)}
+                onClick={() =>
+                  chooseGame(game)
+                }
               >
                 {game.logo_url && (
                   <img
@@ -737,7 +1075,9 @@ function Shop({
                 )}
 
                 <div>
-                  <strong>{game.name}</strong>
+                  <strong>
+                    {game.name}
+                  </strong>
 
                   <small>
                     View Packages →
@@ -761,8 +1101,12 @@ function Shop({
             <div className="game-detail-title">
               {selectedGame.logo_url && (
                 <img
-                  src={selectedGame.logo_url}
-                  alt={selectedGame.name}
+                  src={
+                    selectedGame.logo_url
+                  }
+                  alt={
+                    selectedGame.name
+                  }
                 />
               )}
 
@@ -771,11 +1115,15 @@ function Shop({
                   GAME TOP-UP
                 </p>
 
-                <h2>{selectedGame.name}</h2>
+                <h2>
+                  {selectedGame.name}
+                </h2>
 
                 <p className="muted">
-                  শুধু {selectedGame.name}-এর
-                  package এখানে দেখানো হচ্ছে।
+                  শুধু{" "}
+                  {selectedGame.name}
+                  -এর package এখানে
+                  দেখানো হচ্ছে।
                 </p>
               </div>
             </div>
@@ -783,44 +1131,57 @@ function Shop({
 
           <section className="card">
             <h2>
-              {selectedGame.name} Packages
+              {selectedGame.name}{" "}
+              Packages
             </h2>
 
             <p className="muted">
-              আপনার package select করুন।
+              আপনার package select
+              করুন।
             </p>
 
             <div className="product-grid">
               {currentProducts.length ? (
-                currentProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    type="button"
-                    className={
-                      selectedProduct?.id === product.id
-                        ? "product-card selected"
-                        : "product-card"
-                    }
-                    onClick={() =>
-                      setSelectedProduct(product)
-                    }
-                  >
-                    <span className="package-name">
-                      <b>{product.name}</b>
+                currentProducts.map(
+                  (product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      className={
+                        selectedProduct?.id ===
+                        product.id
+                          ? "product-card selected"
+                          : "product-card"
+                      }
+                      onClick={() =>
+                        setSelectedProduct(
+                          product
+                        )
+                      }
+                    >
+                      <span className="package-name">
+                        <b>
+                          {product.name}
+                        </b>
 
-                      <small>
-                        SKU: {product.sku}
-                      </small>
-                    </span>
+                        <small>
+                          SKU:{" "}
+                          {product.sku}
+                        </small>
+                      </span>
 
-                    <strong>
-                      {money(product.selling_price)}
-                    </strong>
-                  </button>
-                ))
+                      <strong>
+                        {money(
+                          product.selling_price
+                        )}
+                      </strong>
+                    </button>
+                  )
+                )
               ) : (
                 <div className="empty">
-                  No packages available.
+                  No packages
+                  available.
                 </div>
               )}
             </div>
@@ -838,11 +1199,13 @@ function Shop({
                   </p>
 
                   <h2>
-                    Buy {selectedProduct.name}
+                    Buy{" "}
+                    {selectedProduct.name}
                   </h2>
 
                   <p className="muted">
-                    Package: {selectedProduct.sku}
+                    Package:{" "}
+                    {selectedProduct.sku}
                   </p>
                 </div>
 
@@ -853,68 +1216,313 @@ function Shop({
                 </strong>
               </div>
 
-              <label>
-                {selectedGame.player_id_label ||
-                  "Player ID"}
+              {/* =======================================
+                  NORMAL PLAYER ID
+                  Hide here for UniPin because
+                  UniPin box contains Player ID
+              ======================================== */}
 
-                <input
-                  value={playerId}
-                  onChange={(e) =>
-                    setPlayerId(e.target.value)
-                  }
-                  placeholder="Enter Player ID"
-                  required
-                />
-              </label>
-
-              {(selectedGame.region_required ||
-                selectedGame.slug === "pubg-mobile") && (
+              {!isUniPin && (
                 <label>
-                  Server ID
+                  {selectedGame.player_id_label ||
+                    "Player ID"}
 
                   <input
-                    value={serverId}
+                    value={playerId}
                     onChange={(e) =>
-                      setServerId(e.target.value)
+                      setPlayerId(
+                        e.target.value
+                      )
                     }
-                    placeholder="Enter Server ID"
+                    placeholder="Enter Player ID"
+                    inputMode="numeric"
                     required
                   />
                 </label>
               )}
 
-              <label>
-                Payment Method
+              {!isUniPin &&
+                (selectedGame.region_required ||
+                  selectedGame.slug ===
+                    "pubg-mobile") && (
+                  <label>
+                    Server ID
 
-                <select
-                  value={gateway}
-                  onChange={(e) =>
-                    setGateway(e.target.value)
+                    <input
+                      value={serverId}
+                      onChange={(e) =>
+                        setServerId(
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Server ID"
+                      required
+                    />
+                  </label>
+                )}
+
+              {/* =======================================
+                  PAYMENT OPTIONS
+              ======================================== */}
+
+              <div className="payment-options">
+                {/* BKASH */}
+
+                <label
+                  className={
+                    gateway === "bkash"
+                      ? "payment-option selected"
+                      : "payment-option"
                   }
                 >
-                  <option value="bkash">
-                    bKash
-                  </option>
+                  <input
+                    type="radio"
+                    name="gateway"
+                    value="bkash"
+                    checked={
+                      gateway === "bkash"
+                    }
+                    onChange={(e) =>
+                      setGateway(
+                        e.target.value
+                      )
+                    }
+                  />
 
-                  <option value="nagad">
-                    Nagad
-                  </option>
+                  <span>📱</span>
 
-                  <option value="wallet">
-                    Wallet —{" "}
-                    {money(wallet.balance)}
-                  </option>
-                </select>
-              </label>
+                  <div>
+                    <strong>
+                      bKash
+                    </strong>
+
+                    <small>
+                      Pay with bKash
+                    </small>
+                  </div>
+                </label>
+
+                {/* NAGAD */}
+
+                <label
+                  className={
+                    gateway === "nagad"
+                      ? "payment-option selected"
+                      : "payment-option"
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="gateway"
+                    value="nagad"
+                    checked={
+                      gateway === "nagad"
+                    }
+                    onChange={(e) =>
+                      setGateway(
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <span>💳</span>
+
+                  <div>
+                    <strong>
+                      Nagad
+                    </strong>
+
+                    <small>
+                      Pay with Nagad
+                    </small>
+                  </div>
+                </label>
+
+                {/* WALLET */}
+
+                <label
+                  className={
+                    gateway === "wallet"
+                      ? "payment-option selected"
+                      : "payment-option"
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="gateway"
+                    value="wallet"
+                    checked={
+                      gateway === "wallet"
+                    }
+                    onChange={(e) =>
+                      setGateway(
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <span>💰</span>
+
+                  <div>
+                    <strong>
+                      GameON Wallet
+                    </strong>
+
+                    <small>
+                      Balance:{" "}
+                      {money(
+                        wallet.balance
+                      )}
+                    </small>
+                  </div>
+                </label>
+
+                {/* =================================
+                    UNIPIN — FREE FIRE ONLY
+                ================================== */}
+
+                {selectedGame?.slug ===
+                  "free-fire" && (
+                  <label
+                    className={
+                      gateway ===
+                      "unipin_voucher"
+                        ? "payment-option selected unipin-option"
+                        : "payment-option unipin-option"
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="gateway"
+                      value="unipin_voucher"
+                      checked={
+                        gateway ===
+                        "unipin_voucher"
+                      }
+                      onChange={(e) =>
+                        setGateway(
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <span>🎟️</span>
+
+                    <div>
+                      <strong>
+                        UniPin Voucher
+                      </strong>
+
+                      <small>
+                        Free Fire Voucher
+                        দিয়ে Top-Up
+                      </small>
+                    </div>
+                  </label>
+                )}
+              </div>
+
+              {/* =======================================
+                  WALLET INFO
+              ======================================== */}
 
               {gateway === "wallet" && (
                 <div className="wallet-pay-box">
                   Wallet Balance:{" "}
                   <strong>
-                    {money(wallet.balance)}
+                    {money(
+                      wallet.balance
+                    )}
                   </strong>
                 </div>
               )}
+
+              {/* =======================================
+                  UNIPIN FORM
+              ======================================== */}
+
+              {isUniPin && (
+                <div className="unipin-box">
+                  <div className="unipin-header">
+                    <span>🎟️</span>
+
+                    <div>
+                      <h3>
+                        UniPin Voucher
+                      </h3>
+
+                      <p>
+                        আপনার UniPin
+                        voucher-এর
+                        Serial এবং PIN
+                        দিন।
+                      </p>
+                    </div>
+                  </div>
+
+                  <label>
+                    Player ID
+
+                    <input
+                      value={playerId}
+                      onChange={(e) =>
+                        setPlayerId(
+                          e.target.value
+                        )
+                      }
+                      placeholder="Free Fire Player ID"
+                      inputMode="numeric"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Voucher Serial
+
+                    <input
+                      value={
+                        voucherSerial
+                      }
+                      onChange={(e) =>
+                        setVoucherSerial(
+                          e.target.value
+                        )
+                      }
+                      placeholder="Voucher Serial"
+                      autoComplete="off"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Voucher PIN
+
+                    <input
+                      value={voucherPin}
+                      onChange={(e) =>
+                        setVoucherPin(
+                          e.target.value
+                        )
+                      }
+                      placeholder="Voucher PIN"
+                      type="password"
+                      autoComplete="off"
+                      required
+                    />
+                  </label>
+
+                  <div className="unipin-warning">
+                    🔒 Voucher
+                    information secure
+                    ভাবে server-side
+                    process করা হবে।
+                  </div>
+                </div>
+              )}
+
+              {/* =======================================
+                  CHECKOUT SUMMARY
+              ======================================== */}
 
               <div className="checkout-summary">
                 <span>Total</span>
@@ -926,13 +1534,26 @@ function Shop({
                 </strong>
               </div>
 
+              {/* =======================================
+                  SUBMIT BUTTON
+              ======================================== */}
+
               <button
-                className="primary"
-                disabled={busy}
+                type="submit"
+                className="primary checkout-button"
+                disabled={
+                  busy ||
+                  !selectedProduct
+                }
               >
                 {busy
-                  ? "Processing…"
-                  : `Buy ${selectedGame.name} Now`}
+                  ? "Processing..."
+                  : gateway ===
+                    "unipin_voucher"
+                  ? "🎟️ Submit UniPin Voucher"
+                  : `Pay ${money(
+                      selectedProduct?.selling_price
+                    )}`}
               </button>
             </form>
           )}
@@ -941,6 +1562,10 @@ function Shop({
     </main>
   );
 }
+
+// =====================================================
+// AUTH
+// =====================================================
 
 function Auth({
   mode,
@@ -963,11 +1588,15 @@ function Auth({
     <div className="auth-page">
       <div className="auth-card">
         <div className="brand auth-brand">
-          <div className="brand-logo">G</div>
+          <div className="brand-logo">
+            G
+          </div>
 
           <div>
             <strong>GameON</strong>
-            <span>Game Top-Up BD</span>
+            <span>
+              Game Top-Up BD
+            </span>
           </div>
         </div>
 
@@ -985,7 +1614,9 @@ function Auth({
 
         <form
           onSubmit={
-            signup ? onSignup : onLogin
+            signup
+              ? onSignup
+              : onLogin
           }
         >
           {signup && (
@@ -995,7 +1626,9 @@ function Auth({
               <input
                 value={name}
                 onChange={(e) =>
-                  setName(e.target.value)
+                  setName(
+                    e.target.value
+                  )
                 }
                 placeholder="Your name"
                 required
@@ -1010,7 +1643,9 @@ function Auth({
               type="email"
               value={email}
               onChange={(e) =>
-                setEmail(e.target.value)
+                setEmail(
+                  e.target.value
+                )
               }
               placeholder="you@example.com"
               required
@@ -1024,7 +1659,9 @@ function Auth({
               type="password"
               value={password}
               onChange={(e) =>
-                setPassword(e.target.value)
+                setPassword(
+                  e.target.value
+                )
               }
               placeholder="Your password"
               required
@@ -1068,7 +1705,9 @@ function Auth({
           className="link-button"
           onClick={() =>
             setMode(
-              signup ? "login" : "signup"
+              signup
+                ? "login"
+                : "signup"
             )
           }
         >
@@ -1080,6 +1719,10 @@ function Auth({
     </div>
   );
 }
+
+// =====================================================
+// PROFILE
+// =====================================================
 
 function Profile({
   profile,
@@ -1094,9 +1737,11 @@ function Profile({
       <div className="profile-grid">
         <section className="card profile-card">
           <div className="profile-avatar">
-            {(form.full_name ||
+            {(
+              form.full_name ||
               profile?.user_code ||
-              "G")
+              "G"
+            )
               .slice(0, 1)
               .toUpperCase()}
           </div>
@@ -1117,7 +1762,8 @@ function Profile({
           <p className="muted">
             Plan:{" "}
             <b>
-              {profile?.plan || "free"}
+              {profile?.plan ||
+                "free"}
             </b>
           </p>
 
@@ -1126,7 +1772,9 @@ function Profile({
               Full Name
 
               <input
-                value={form.full_name}
+                value={
+                  form.full_name
+                }
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1145,7 +1793,8 @@ function Profile({
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    phone: e.target.value,
+                    phone:
+                      e.target.value,
                   })
                 }
                 placeholder="01XXXXXXXXX"
@@ -1197,18 +1846,24 @@ function Profile({
 
           <p>
             <b>Status:</b>{" "}
-            {profile?.status || "active"}
+            {profile?.status ||
+              "active"}
           </p>
 
           <p>
             <b>Role:</b>{" "}
-            {profile?.role || "customer"}
+            {profile?.role ||
+              "customer"}
           </p>
         </section>
       </div>
     </main>
   );
 }
+
+// =====================================================
+// WALLET
+// =====================================================
 
 function Wallet({
   wallet,
@@ -1217,8 +1872,11 @@ function Wallet({
   onAddMoney,
   busy,
 }) {
-  const [amount, setAmount] = useState("");
-  const [gw, setGw] = useState("bkash");
+  const [amount, setAmount] =
+    useState("");
+
+  const [gw, setGw] =
+    useState("bkash");
 
   return (
     <main className="content">
@@ -1227,8 +1885,9 @@ function Wallet({
           <h1>My Wallet</h1>
 
           <p className="muted">
-            Wallet balance দিয়ে game top-up
-            এবং নতুন balance add করতে পারবেন।
+            Wallet balance দিয়ে game
+            top-up এবং নতুন balance
+            add করতে পারবেন।
           </p>
         </div>
 
@@ -1259,7 +1918,11 @@ function Wallet({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onAddMoney(amount, gw);
+
+            onAddMoney(
+              amount,
+              gw
+            );
           }}
         >
           <label>
@@ -1271,7 +1934,9 @@ function Wallet({
               step="1"
               value={amount}
               onChange={(e) =>
-                setAmount(e.target.value)
+                setAmount(
+                  e.target.value
+                )
               }
               placeholder="Example: 500"
               required
@@ -1284,7 +1949,9 @@ function Wallet({
             <select
               value={gw}
               onChange={(e) =>
-                setGw(e.target.value)
+                setGw(
+                  e.target.value
+                )
               }
             >
               <option value="bkash">
@@ -1318,9 +1985,10 @@ function Wallet({
         </h2>
 
         <p>
-          Amount লিখুন → bKash/Nagad select
-          করুন → payment complete করুন →
-          সফল payment হলে balance automatically
+          Amount লিখুন → bKash/Nagad
+          select করুন → payment
+          complete করুন → সফল payment
+          হলে balance automatically
           যোগ হবে।
         </p>
       </section>
@@ -1333,38 +2001,42 @@ function Wallet({
         </div>
       ) : (
         <div className="transaction-list">
-          {deposits.map((deposit) => (
-            <div
-              className="card transaction"
-              key={deposit.id}
-            >
-              <div>
-                <b>
-                  {deposit.gateway.toUpperCase()}
-                  {" — Wallet Add"}
-                </b>
-
-                <small>
-                  {new Date(
-                    deposit.created_at
-                  ).toLocaleString()}
-                </small>
-              </div>
-
-              <strong
-                className={
-                  deposit.status ===
-                  "success"
-                    ? "credit"
-                    : ""
-                }
+          {deposits.map(
+            (deposit) => (
+              <div
+                className="card transaction"
+                key={deposit.id}
               >
-                {money(deposit.amount)}
-                {" · "}
-                {deposit.status}
-              </strong>
-            </div>
-          ))}
+                <div>
+                  <b>
+                    {deposit.gateway.toUpperCase()}
+                    {" — Wallet Add"}
+                  </b>
+
+                  <small>
+                    {new Date(
+                      deposit.created_at
+                    ).toLocaleString()}
+                  </small>
+                </div>
+
+                <strong
+                  className={
+                    deposit.status ===
+                    "success"
+                      ? "credit"
+                      : ""
+                  }
+                >
+                  {money(
+                    deposit.amount
+                  )}
+                  {" · "}
+                  {deposit.status}
+                </strong>
+              </div>
+            )
+          )}
         </div>
       )}
 
@@ -1374,47 +2046,56 @@ function Wallet({
 
       {!transactions.length ? (
         <div className="card empty">
-          No wallet transactions yet.
+          No wallet transactions
+          yet.
         </div>
       ) : (
         <div className="transaction-list">
-          {transactions.map((tx) => (
-            <div
-              className="card transaction"
-              key={tx.id}
-            >
-              <div>
-                <b>
-                  {tx.description ||
-                    "Wallet transaction"}
-                </b>
-
-                <small>
-                  {new Date(
-                    tx.created_at
-                  ).toLocaleString()}
-                </small>
-              </div>
-
-              <strong
-                className={
-                  tx.type === "credit"
-                    ? "credit"
-                    : "debit"
-                }
+          {transactions.map(
+            (tx) => (
+              <div
+                className="card transaction"
+                key={tx.id}
               >
-                {tx.type === "credit"
-                  ? "+"
-                  : "-"}
-                {money(tx.amount)}
-              </strong>
-            </div>
-          ))}
+                <div>
+                  <b>
+                    {tx.description ||
+                      "Wallet transaction"}
+                  </b>
+
+                  <small>
+                    {new Date(
+                      tx.created_at
+                    ).toLocaleString()}
+                  </small>
+                </div>
+
+                <strong
+                  className={
+                    tx.type ===
+                    "credit"
+                      ? "credit"
+                      : "debit"
+                  }
+                >
+                  {tx.type ===
+                  "credit"
+                    ? "+"
+                    : "-"}
+                  {money(tx.amount)}
+                </strong>
+              </div>
+            )
+          )}
         </div>
       )}
     </main>
   );
 }
+
+// =====================================================
+// ORDERS
+// =====================================================
 
 function Orders({ orders }) {
   return (
@@ -1422,8 +2103,8 @@ function Orders({ orders }) {
       <h1>My Orders</h1>
 
       <p className="muted">
-        Paid orders এবং top-up status এখানে
-        দেখা যাবে।
+        Paid orders এবং top-up status
+        এখানে দেখা যাবে।
       </p>
 
       {!orders.length ? (
@@ -1441,18 +2122,24 @@ function Orders({ orders }) {
                 <h3>
                   Order #
                   {order.order_number ||
-                    shortCode(order.id)}
+                    shortCode(
+                      order.id
+                    )}
                 </h3>
 
                 <p>
                   Player ID:{" "}
-                  <b>{order.player_id}</b>
+                  <b>
+                    {order.player_id}
+                  </b>
                 </p>
 
                 {order.server_id && (
                   <p>
                     Server ID:{" "}
-                    <b>{order.server_id}</b>
+                    <b>
+                      {order.server_id}
+                    </b>
                   </p>
                 )}
 
@@ -1466,7 +2153,9 @@ function Orders({ orders }) {
                 <p>
                   Top-up:{" "}
                   <b>
-                    {order.fulfillment_status}
+                    {
+                      order.fulfillment_status
+                    }
                   </b>
                 </p>
 
@@ -1488,22 +2177,33 @@ function Orders({ orders }) {
   );
 }
 
+// =====================================================
+// ADMIN
+// =====================================================
+
 function Admin({ onBack }) {
-  const [users, setUsers] = useState([]);
-  const [paidOrders, setPaidOrders] = useState([]);
+  const [users, setUsers] =
+    useState([]);
+
+  const [paidOrders, setPaidOrders] =
+    useState([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] =
+    useState("");
+
   const [activeTab, setActiveTab] =
     useState("users");
 
   const [search, setSearch] =
     useState("");
 
-  const [selectedUser, setSelectedUser] =
-    useState(null);
+  const [
+    selectedUser,
+    setSelectedUser,
+  ] = useState(null);
 
   const [amount, setAmount] =
     useState("");
@@ -1528,9 +2228,10 @@ function Admin({ onBack }) {
     const {
       data: userData,
       error: userError,
-    } = await supabase.rpc(
-      "admin_list_users"
-    );
+    } =
+      await supabase.rpc(
+        "admin_list_users"
+      );
 
     if (userError) {
       setMsg(userError.message);
@@ -1542,25 +2243,34 @@ function Admin({ onBack }) {
 
     const {
       data: orderData,
-    } = await supabase.rpc(
-      "admin_list_paid_orders"
-    );
+    } =
+      await supabase.rpc(
+        "admin_list_paid_orders"
+      );
 
-    setPaidOrders(orderData || []);
+    setPaidOrders(
+      orderData || []
+    );
 
     const {
       data: settings,
-    } = await supabase.rpc(
-      "admin_get_wallet_settings"
-    );
-
-    if (settings?.length) {
-      const currentLimit = Number(
-        settings[0].free_credit_limit ||
-          1000
+    } =
+      await supabase.rpc(
+        "admin_get_wallet_settings"
       );
 
-      setLimit(currentLimit);
+    if (settings?.length) {
+      const currentLimit =
+        Number(
+          settings[0]
+            .free_credit_limit ||
+            1000
+        );
+
+      setLimit(
+        currentLimit
+      );
+
       setNewLimit(
         String(currentLimit)
       );
@@ -1600,11 +2310,12 @@ function Admin({ onBack }) {
     userId,
     status
   ) {
-    const confirmed = window.confirm(
-      status === "blocked"
-        ? "Block this user?"
-        : "Unblock this user?"
-    );
+    const confirmed =
+      window.confirm(
+        status === "blocked"
+          ? "Block this user?"
+          : "Unblock this user?"
+      );
 
     if (!confirmed) return;
 
@@ -1634,22 +2345,30 @@ function Admin({ onBack }) {
   async function saveLimit(e) {
     e.preventDefault();
 
-    const value = Number(newLimit);
+    const value =
+      Number(newLimit);
 
-    if (!Number.isFinite(value) || value < 1) {
-      setMsg("Enter a valid credit limit.");
+    if (
+      !Number.isFinite(value) ||
+      value < 1
+    ) {
+      setMsg(
+        "Enter a valid credit limit."
+      );
+
       return;
     }
 
     const {
       data,
       error,
-    } = await supabase.rpc(
-      "admin_set_free_credit_limit",
-      {
-        p_limit: value,
-      }
-    );
+    } =
+      await supabase.rpc(
+        "admin_set_free_credit_limit",
+        {
+          p_limit: value,
+        }
+      );
 
     if (error) {
       setMsg(error.message);
@@ -1657,7 +2376,10 @@ function Admin({ onBack }) {
     }
 
     setLimit(Number(data));
-    setNewLimit(String(data));
+
+    setNewLimit(
+      String(data)
+    );
 
     setMsg(
       `Free credit limit set to ${money(
@@ -1670,14 +2392,24 @@ function Admin({ onBack }) {
     e.preventDefault();
 
     if (!selectedUser) {
-      setMsg("Select a user first.");
+      setMsg(
+        "Select a user first."
+      );
+
       return;
     }
 
-    const value = Number(amount);
+    const value =
+      Number(amount);
 
-    if (!Number.isFinite(value) || value <= 0) {
-      setMsg("Enter a valid amount.");
+    if (
+      !Number.isFinite(value) ||
+      value <= 0
+    ) {
+      setMsg(
+        "Enter a valid amount."
+      );
+
       return;
     }
 
@@ -1687,20 +2419,25 @@ function Admin({ onBack }) {
           limit
         )}.`
       );
+
       return;
     }
 
     const {
       data,
       error,
-    } = await supabase.rpc(
-      "admin_credit_wallet",
-      {
-        p_user_id: selectedUser.id,
-        p_amount: value,
-        p_reason: reason,
-      }
-    );
+    } =
+      await supabase.rpc(
+        "admin_credit_wallet",
+        {
+          p_user_id:
+            selectedUser.id,
+
+          p_amount: value,
+
+          p_reason: reason,
+        }
+      );
 
     if (error) {
       setMsg(error.message);
@@ -1746,7 +2483,8 @@ function Admin({ onBack }) {
 
   const filteredUsers =
     users.filter((user) => {
-      if (!searchText) return true;
+      if (!searchText)
+        return true;
 
       return [
         user.user_code,
@@ -1771,7 +2509,8 @@ function Admin({ onBack }) {
           </h1>
 
           <p className="muted">
-            GameON management dashboard
+            GameON management
+            dashboard
           </p>
         </div>
 
@@ -1794,7 +2533,9 @@ function Admin({ onBack }) {
               : ""
           }
           onClick={() =>
-            setActiveTab("users")
+            setActiveTab(
+              "users"
+            )
           }
         >
           👥 Users
@@ -1807,7 +2548,9 @@ function Admin({ onBack }) {
               : ""
           }
           onClick={() =>
-            setActiveTab("wallet")
+            setActiveTab(
+              "wallet"
+            )
           }
         >
           💰 Free Credit
@@ -1820,7 +2563,9 @@ function Admin({ onBack }) {
               : ""
           }
           onClick={() =>
-            setActiveTab("orders")
+            setActiveTab(
+              "orders"
+            )
           }
         >
           📦 Orders
@@ -1842,7 +2587,9 @@ function Admin({ onBack }) {
             </div>
 
             <button
-              onClick={loadAdminData}
+              onClick={
+                loadAdminData
+              }
             >
               Refresh
             </button>
@@ -1870,144 +2617,154 @@ function Admin({ onBack }) {
             </div>
           ) : (
             <div className="admin-users">
-              {filteredUsers.map((user) => (
-                <div
-                  className="card admin-user"
-                  key={user.id}
-                >
-                  <div className="admin-user-info">
-                    <div className="profile-avatar">
-                      {(
-                        user.full_name ||
-                        user.user_code ||
-                        "G"
-                      )
-                        .slice(0, 1)
-                        .toUpperCase()}
+              {filteredUsers.map(
+                (user) => (
+                  <div
+                    className="card admin-user"
+                    key={user.id}
+                  >
+                    <div className="admin-user-info">
+                      <div className="profile-avatar">
+                        {(
+                          user.full_name ||
+                          user.user_code ||
+                          "G"
+                        )
+                          .slice(
+                            0,
+                            1
+                          )
+                          .toUpperCase()}
+                      </div>
+
+                      <div>
+                        <h3>
+                          {user.full_name ||
+                            "No Name"}
+                        </h3>
+
+                        <p>
+                          {user.email ||
+                            "No Email"}
+                        </p>
+
+                        <small>
+                          Unique ID:{" "}
+                          <b>
+                            {
+                              user.user_code
+                            }
+                          </b>
+                        </small>
+
+                        {user.phone && (
+                          <small>
+                            Phone:{" "}
+                            {
+                              user.phone
+                            }
+                          </small>
+                        )}
+                      </div>
                     </div>
 
-                    <div>
-                      <h3>
-                        {user.full_name ||
-                          "No Name"}
-                      </h3>
+                    <div className="admin-user-status">
+                      <span
+                        className={
+                          user.status ===
+                          "blocked"
+                            ? "status blocked"
+                            : "status active"
+                        }
+                      >
+                        {user.status ===
+                        "blocked"
+                          ? "🚫 Blocked"
+                          : "🟢 Active"}
+                      </span>
 
-                      <p>
-                        {user.email ||
-                          "No Email"}
-                      </p>
+                      <span className="status">
+                        Plan:{" "}
+                        {user.plan ||
+                          "free"}
+                      </span>
+                    </div>
 
-                      <small>
-                        Unique ID:{" "}
-                        <b>
-                          {user.user_code}
-                        </b>
-                      </small>
+                    <div className="admin-actions">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(
+                            user
+                          );
 
-                      {user.phone && (
-                        <small>
-                          Phone:{" "}
-                          {user.phone}
-                        </small>
+                          setActiveTab(
+                            "wallet"
+                          );
+                        }}
+                      >
+                        💰 Give Free
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          changePlan(
+                            user.id,
+                            "free"
+                          )
+                        }
+                        disabled={
+                          user.plan ===
+                          "free"
+                        }
+                      >
+                        🆓 Free
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          changePlan(
+                            user.id,
+                            "premium"
+                          )
+                        }
+                        disabled={
+                          user.plan ===
+                          "premium"
+                        }
+                      >
+                        ⭐ Premium
+                      </button>
+
+                      {user.status ===
+                      "blocked" ? (
+                        <button
+                          className="success-btn"
+                          onClick={() =>
+                            changeStatus(
+                              user.id,
+                              "active"
+                            )
+                          }
+                        >
+                          🔓 Unblock
+                        </button>
+                      ) : (
+                        <button
+                          className="danger-btn"
+                          onClick={() =>
+                            changeStatus(
+                              user.id,
+                              "blocked"
+                            )
+                          }
+                        >
+                          🚫 Block
+                        </button>
                       )}
                     </div>
                   </div>
-
-                  <div className="admin-user-status">
-                    <span
-                      className={
-                        user.status ===
-                        "blocked"
-                          ? "status blocked"
-                          : "status active"
-                      }
-                    >
-                      {user.status ===
-                      "blocked"
-                        ? "🚫 Blocked"
-                        : "🟢 Active"}
-                    </span>
-
-                    <span className="status">
-                      Plan:{" "}
-                      {user.plan ||
-                        "free"}
-                    </span>
-                  </div>
-
-                  <div className="admin-actions">
-                    <button
-                      onClick={() => {
-                        setSelectedUser(
-                          user
-                        );
-                        setActiveTab(
-                          "wallet"
-                        );
-                      }}
-                    >
-                      💰 Give Free
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        changePlan(
-                          user.id,
-                          "free"
-                        )
-                      }
-                      disabled={
-                        user.plan ===
-                        "free"
-                      }
-                    >
-                      🆓 Free
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        changePlan(
-                          user.id,
-                          "premium"
-                        )
-                      }
-                      disabled={
-                        user.plan ===
-                        "premium"
-                      }
-                    >
-                      ⭐ Premium
-                    </button>
-
-                    {user.status ===
-                    "blocked" ? (
-                      <button
-                        className="success-btn"
-                        onClick={() =>
-                          changeStatus(
-                            user.id,
-                            "active"
-                          )
-                        }
-                      >
-                        🔓 Unblock
-                      </button>
-                    ) : (
-                      <button
-                        className="danger-btn"
-                        onClick={() =>
-                          changeStatus(
-                            user.id,
-                            "blocked"
-                          )
-                        }
-                      >
-                        🚫 Block
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </section>
@@ -2025,8 +2782,9 @@ function Admin({ onBack }) {
 
           <p className="muted">
             একবারে সর্বোচ্চ{" "}
-            {money(limit)} পর্যন্ত user
-            wallet-এ credit করা যাবে।
+            {money(limit)} পর্যন্ত
+            user wallet-এ credit
+            করা যাবে।
           </p>
 
           <form
@@ -2034,7 +2792,8 @@ function Admin({ onBack }) {
             onSubmit={saveLimit}
           >
             <label>
-              Maximum Free Credit Limit
+              Maximum Free Credit
+              Limit
 
               <input
                 type="number"
@@ -2115,7 +2874,9 @@ function Admin({ onBack }) {
 
             <button
               className="primary"
-              disabled={!selectedUser}
+              disabled={
+                !selectedUser
+              }
             >
               ✅ Confirm Credit
             </button>
@@ -2132,13 +2893,15 @@ function Admin({ onBack }) {
               </h2>
 
               <p className="muted">
-                Paid orders waiting for
-                top-up.
+                Paid orders waiting
+                for top-up.
               </p>
             </div>
 
             <button
-              onClick={loadAdminData}
+              onClick={
+                loadAdminData
+              }
             >
               Refresh
             </button>
@@ -2150,81 +2913,87 @@ function Admin({ onBack }) {
             </div>
           ) : (
             <div className="order-list">
-              {paidOrders.map((order) => (
-                <div
-                  className="card order-card"
-                  key={order.id}
-                >
-                  <div>
-                    <h3>
-                      Order #
-                      {order.order_number ||
-                        shortCode(
-                          order.id
-                        )}
-                    </h3>
+              {paidOrders.map(
+                (order) => (
+                  <div
+                    className="card order-card"
+                    key={order.id}
+                  >
+                    <div>
+                      <h3>
+                        Order #
+                        {order.order_number ||
+                          shortCode(
+                            order.id
+                          )}
+                      </h3>
 
-                    <p>
-                      Player ID:{" "}
-                      <b>
-                        {order.player_id}
-                      </b>
-                    </p>
-
-                    {order.server_id && (
                       <p>
-                        Server ID:{" "}
+                        Player ID:{" "}
                         <b>
-                          {order.server_id}
+                          {
+                            order.player_id
+                          }
                         </b>
                       </p>
-                    )}
 
-                    <p>
-                      Payment:{" "}
-                      <strong className="success">
-                        Paid
-                      </strong>
-                    </p>
+                      {order.server_id && (
+                        <p>
+                          Server ID:{" "}
+                          <b>
+                            {
+                              order.server_id
+                            }
+                          </b>
+                        </p>
+                      )}
 
-                    <p>
-                      Fulfillment:{" "}
-                      <b>
-                        {
-                          order.fulfillment_status
+                      <p>
+                        Payment:{" "}
+                        <strong className="success">
+                          Paid
+                        </strong>
+                      </p>
+
+                      <p>
+                        Fulfillment:{" "}
+                        <b>
+                          {
+                            order.fulfillment_status
+                          }
+                        </b>
+                      </p>
+
+                      <p>
+                        Amount:{" "}
+                        <b>
+                          {money(
+                            order.total
+                          )}
+                        </b>
+                      </p>
+                    </div>
+
+                    {order.fulfillment_status !==
+                    "completed" ? (
+                      <button
+                        className="primary"
+                        onClick={() =>
+                          completeOrder(
+                            order.id
+                          )
                         }
-                      </b>
-                    </p>
-
-                    <p>
-                      Amount:{" "}
-                      <b>
-                        {money(
-                          order.total
-                        )}
-                      </b>
-                    </p>
+                      >
+                        ✅ Mark Success
+                      </button>
+                    ) : (
+                      <span className="success">
+                        ✅ Completed
+                      </span>
+                    )}
                   </div>
-
-                  {order.fulfillment_status !==
-                  "completed" ? (
-                    <button
-                      className="primary"
-                      onClick={() =>
-                        completeOrder(
-                          order.id
-                        )
-                      }
-                    >
-                      ✅ Mark Success
-                    </button>
-                  ) : (
-                    <span className="success">
-                      ✅ Completed
-                    </span>
-                  )}
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </section>
@@ -2232,6 +3001,10 @@ function Admin({ onBack }) {
     </main>
   );
 }
+
+// =====================================================
+// RENDER
+// =====================================================
 
 createRoot(
   document.getElementById("root")
